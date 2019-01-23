@@ -95,7 +95,7 @@ static int mode      = TCP_ONLY;
 static int nofile = 0;
 #endif
 static int no_delay  = 0;
-static int fast_open = 0;
+       int fast_open = 0;
 static int ret_val   = 0;
 
 static struct ev_signal sigint_watcher;
@@ -664,8 +664,8 @@ new_server(int fd)
     server->send_ctx->server    = server;
     server->send_ctx->connected = 0;
 
-    server->e_ctx = ss_align(sizeof(cipher_ctx_t));
-    server->d_ctx = ss_align(sizeof(cipher_ctx_t));
+    server->e_ctx = ss_malloc(sizeof(cipher_ctx_t));
+    server->d_ctx = ss_malloc(sizeof(cipher_ctx_t));
     crypto->ctx_init(crypto->cipher, server->e_ctx, 1);
     crypto->ctx_init(crypto->cipher, server->d_ctx, 0);
 

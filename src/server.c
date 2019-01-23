@@ -120,7 +120,7 @@ static crypto_t *crypto;
 static int acl       = 0;
 static int mode      = TCP_ONLY;
 static int ipv6first = 0;
-static int fast_open = 0;
+       int fast_open = 0;
 static int no_delay  = 0;
 static int ret_val   = 0;
 
@@ -927,9 +927,9 @@ server_recv_cb(EV_P_ ev_io *w, int revents)
 
         if (verbose) {
             if ((atyp & ADDRTYPE_MASK) == 4)
-                LOGI("connect to [%s]:%d", host, ntohs(port));
+                LOGI("[%s] connect to [%s]:%d", remote_port, host, ntohs(port));
             else
-                LOGI("connect to %s:%d", host, ntohs(port));
+                LOGI("[%s] connect to %s:%d", remote_port, host, ntohs(port));
         }
 
         if (!need_query) {
@@ -1415,8 +1415,8 @@ new_server(int fd, listen_ctx_t *listener)
     server->listen_ctx          = listener;
     server->remote              = NULL;
 
-    server->e_ctx = ss_align(sizeof(cipher_ctx_t));
-    server->d_ctx = ss_align(sizeof(cipher_ctx_t));
+    server->e_ctx = ss_malloc(sizeof(cipher_ctx_t));
+    server->d_ctx = ss_malloc(sizeof(cipher_ctx_t));
     crypto->ctx_init(crypto->cipher, server->e_ctx, 1);
     crypto->ctx_init(crypto->cipher, server->d_ctx, 0);
 
@@ -1816,6 +1816,10 @@ main(int argc, char **argv)
         }
         if (ipv6first == 0) {
             ipv6first = conf->ipv6_first;
+        }
+        if (acl == 0) {
+            LOGI("initializing acl...");
+            acl = !init_acl(conf->acl);
         }
     }
 

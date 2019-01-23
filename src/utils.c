@@ -32,6 +32,8 @@
 #include <errno.h>
 #include <pwd.h>
 #include <grp.h>
+#else
+#include <malloc.h>
 #endif
 
 #include <sys/types.h>
@@ -241,12 +243,16 @@ ss_malloc(size_t size)
 }
 
 void *
-ss_align(size_t size)
+ss_aligned_malloc(size_t size)
 {
     int err;
     void *tmp = NULL;
 #ifdef HAVE_POSIX_MEMALIGN
-    err = posix_memalign(&tmp, sizeof(void *), size);
+    /* ensure 16 byte alignment */
+    err = posix_memalign(&tmp, 16, size);
+#elif __MINGW32__
+    tmp = _aligned_malloc(size, 16);
+    err = tmp == NULL;
 #else
     err = -1;
 #endif
@@ -387,6 +393,8 @@ usage()
 #ifdef MODULE_MANAGER
     printf(
         "       [--executable <path>]      Path to the executable of ss-server.\n");
+    printf(
+        "       [-D <path>]                Path to the working directory of ss-manager.\n");
 #endif
     printf(
         "       [--mtu <MTU>]              MTU of your network interface.\n");
